@@ -262,7 +262,182 @@ tongue_ai/
 
 ---
 
-## 九、技术支持
+## 九、API 接口文档
+
+### 基础配置
+
+- **Base URL**: `http://localhost:5000/api/model`
+- **Content-Type**: `application/json`（除特殊说明外）
+
+### 接口列表
+
+#### 1. 获取特征定义
+
+```
+GET /features
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "tongue_color": {
+      "0": "淡白舌",
+      "1": "淡红舌",
+      "2": "红舌",
+      "3": "绛舌",
+      "4": "青紫舌"
+    },
+    "coating_color": {
+      "0": "白苔",
+      "1": "黄苔",
+      "2": "灰黑苔"
+    },
+    "tongue_thickness": {
+      "0": "薄",
+      "1": "厚"
+    },
+    "rot_greasy": {
+      "0": "腻",
+      "1": "腐"
+    }
+  }
+}
+```
+
+---
+
+#### 2. 创建分析任务
+
+```
+POST /analyze
+Content-Type: multipart/form-data
+```
+
+**请求参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| file_data | File | 是 | 舌象图片 |
+| user_input | String | 否 | 用户补充的症状信息 |
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "task created",
+  "data": {
+    "task_id": "abc123def456",
+    "status": "queued",
+    "progress": 0
+  }
+}
+```
+
+---
+
+#### 3. 获取单个任务
+
+```
+GET /tasks/{task_id}
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "abc123def456",
+    "status": "success",
+    "progress": 4,
+    "error": "",
+    "created_at": 1713456789000,
+    "updated_at": 1713456815000,
+    "result": {
+      "features": {
+        "tongue_color": { "index": 1, "label": "淡红舌" },
+        "coating_color": { "index": 0, "label": "白苔" },
+        "tongue_thickness": { "index": 0, "label": "薄" },
+        "rot_greasy": { "index": 0, "label": "腻" }
+      },
+      "analysis_markdown": "## 舌象综合解读\n\n...",
+      "segmented_image": "data:image/png;base64,..."
+    }
+  }
+}
+```
+
+**任务状态说明**:
+| status | 说明 |
+|--------|------|
+| queued | 排队中 |
+| running | 分析中 |
+| success | 成功 |
+| failed | 失败 |
+
+**进度说明**:
+| progress | 说明 |
+|----------|------|
+| 0 | 排队中 |
+| 1 | 初始化模型 |
+| 2 | CV分析中 |
+| 3 | AI辨证中 |
+| 4 | 已完成 |
+
+---
+
+#### 4. 获取任务列表
+
+```
+GET /tasks?limit=20
+```
+
+**查询参数**:
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| limit | Integer | 20 | 返回数量上限 |
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": [
+    {
+      "task_id": "abc123def456",
+      "status": "success",
+      "progress": 4,
+      "created_at": 1713456789000,
+      "result": { ... }
+    }
+  ]
+}
+```
+
+---
+
+#### 5. 删除任务
+
+```
+DELETE /tasks/{task_id}
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "task deleted",
+  "data": {
+    "task_id": "abc123def456"
+  }
+}
+```
+
+---
+
+## 十、技术支持
 
 如果部署过程中遇到问题，请：
 1. 查看本文档的"常见问题"部分
